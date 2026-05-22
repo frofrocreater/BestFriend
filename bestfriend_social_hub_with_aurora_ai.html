@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BestFriend - Share, Discover & Chat</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            500: '#ec4899', // Pink
+                            600: '#db2777',
+                            700: '#be185d',
+                            primary: '#8b5cf6', // Violet Accent
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Puter.js Serverless Library -->
+    <script src="https://js.puter.com/v2/"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+            background-color: #05070c;
+            color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ec4899;
+        }
+        /* Snap scroll styling for video list */
+        .video-snap-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: calc(100vh - 64px);
+        }
+        @media (max-width: 768px) {
+            .video-snap-container {
+                height: calc(100vh - 56px);
+            }
+        }
+        .video-snap-item {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
+        /* Scrolling music marquee text */
+        @keyframes marquee {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 14s linear infinite;
+        }
+        /* Glowing effects */
+        .glow-pink-violet {
+            box-shadow: 0 0 25px -5px rgba(236, 72, 153, 0.3), 0 0 15px -5px rgba(139, 92, 246, 0.3);
+        }
+        .glow-avatar-ai {
+            box-shadow: 0 0 15px 2px rgba(236, 72, 153, 0.4);
+            animation: pulse-glow 2s infinite alternate;
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 8px 1px rgba(236, 72, 153, 0.3); }
+            100% { box-shadow: 0 0 18px 4px rgba(236, 72, 153, 0.6); }
+        }
+        /* Tap feedback scale */
+        .tap-scale:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body class="h-full overflow-hidden select-none">
+
+    <div class="flex flex-col h-full bg-[#05070c]">
+        
+        <!-- Premium Navigation Header -->
+        <header class="h-16 border-b border-gray-900 bg-[#090d16]/95 backdrop-blur-md flex items-center justify-between px-4 lg:px-8 z-20 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/10">
+                    <i data-lucide="heart" class="w-5 h-5 text-white fill-white animate-pulse"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-violet-400 via-pink-400 to-brand-500 bg-clip-text text-transparent font-['Plus_Jakarta_Sans']">BestFriend</span>
+                        <span class="text-[9px] bg-gradient-to-r from-pink-500/15 to-violet-500/15 text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded-full font-bold">LIVE AI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Interaction Tools -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Glowing Quick Chat Button -->
+                <button onclick="switchTab('chat-tab')" class="tap-scale flex items-center gap-2 bg-gradient-to-r from-violet-600/10 to-pink-500/10 hover:from-violet-600/20 hover:to-pink-500/20 border border-pink-500/20 text-pink-300 px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-pink-500/5 transition duration-200">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-pink-400 animate-spin" style="animation-duration: 4s;"></i>
+                    <span>AI Chatroom</span>
+                </button>
+                <button onclick="openUploadModal()" class="tap-scale flex items-center gap-2 bg-gradient-to-r from-violet-600 to-pink-500 hover:from-violet-700 hover:to-pink-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-pink-500/20 transition duration-200">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Post Video</span>
+                </button>
+                <div id="auth-status-container" class="flex items-center gap-2 bg-[#0d1321] border border-gray-850 px-3 py-1.5 rounded-xl">
+                    <div class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" id="auth-indicator"></div>
+                    <span class="text-[10px] sm:text-xs font-semibold text-gray-300 max-w-[100px] truncate" id="username-display">Connecting...</span>
+                    <button onclick="openProfileEditModal()" title="Edit Profile" class="text-gray-400 hover:text-white transition ml-1">
+                        <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar / Viewport Flex Split -->
+        <div class="flex-1 flex overflow-hidden">
+            
+            <!-- Desktop Navigation Sidebar -->
+            <aside class="hidden md:flex flex-col w-64 bg-[#080c14] border-r border-gray-900 p-4 shrink-0 justify-between">
+                <div class="space-y-6">
+                    <!-- Navigation Tabs -->
+                    <div class="space-y-1">
+                        <button onclick="changeFeedType('foryou')" id="btn-feed-foryou" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-violet-600/10 text-violet-400 transition-all duration-200">
+                            <i data-lucide="compass" class="w-5 h-5"></i>
+                            For You
+                        </button>
+                        <button onclick="changeFeedType('following')" id="btn-feed-following" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-900/60 hover:text-gray-200 transition-all duration-200">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                            Following
+                        </button>
+                        <button onclick="switchTab('chat-tab')" id="btn-feed-chat" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-900/60 hover:text-gray-200 transition-all duration-200">
+                            <i data-lucide="message-square" class="w-5 h-5"></i>
+                            BestFriend Chat
+                        </button>
+                        <button onclick="switchTab('profile-tab')" id="btn-feed-profile" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-900/60 hover:text-gray-200 transition-all duration-200">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                            My Profile
+                        </button>
+                    </div>
+
+                    <!-- Compact User Profile Status Card -->
+                    <div class="bg-gradient-to-b from-[#0d1321]/80 to-[#090d16]/80 rounded-2xl p-4 border border-gray-850">
+                        <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">My Network Activity</h4>
+                        <div class="grid grid-cols-2 gap-2 text-center">
+                            <div class="bg-gray-950/40 p-2.5 rounded-xl border border-gray-900">
+                                <span class="block text-base font-extrabold text-violet-400" id="stat-followers">0</span>
+                                <span class="text-[9px] text-gray-400 font-medium">Followers</span>
+                            </div>
+                            <div class="bg-gray-950/40 p-2.5 rounded-xl border border-gray-900">
+                                <span class="block text-base font-extrabold text-pink-400" id="stat-following">0</span>
+                                <span class="text-[9px] text-gray-400 font-medium">Following</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suggested Creators List -->
+                    <div>
+                        <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">Trending BestFriends</h4>
+                        <div id="suggested-creators-list" class="space-y-2">
+                            <div class="text-xs text-gray-500 px-1 italic">Vibing with the crowd...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer credits -->
+                <div class="text-[10px] text-gray-600 px-1">
+                    <p>© 2026 BestFriend AI.</p>
+                    <p class="mt-0.5">Designed with absolute privacy.</p>
+                </div>
+            </aside>
+
+            <!-- Video Player Main Section -->
+            <main class="flex-1 flex flex-col relative bg-[#030509] overflow-hidden">
+                
+                <!-- Feed Filter Tabs (Mobile Only top header bar) -->
+                <div class="md:hidden absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20 bg-black/55 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-gray-800/50">
+                    <button onclick="changeFeedType('foryou')" id="mobile-feed-foryou" class="text-xs font-bold text-white transition-all px-2 py-0.5">For You</button>
+                    <div class="w-[1px] h-3 bg-gray-800"></div>
+                    <button onclick="changeFeedType('following')" id="mobile-feed-following" class="text-xs font-semibold text-gray-400 hover:text-white transition-all px-2 py-0.5">Following</button>
+                </div>
+
+                <!-- Video Scrollable Main Snap Viewport -->
+                <div id="feed-container" class="video-snap-container w-full h-full flex flex-col overflow-y-scroll scroll-smooth relative">
+                    <!-- Dynamic Video templates or animated fallbacks mount here -->
+                </div>
+
+                <!-- Fallback empty/loading screen state -->
+                <div id="empty-state" class="hidden absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 bg-[#05070c]">
+                    <div class="w-16 h-16 rounded-3xl bg-gray-900 border border-gray-850 flex items-center justify-center mb-4 text-violet-500">
+                        <i data-lucide="video" class="w-8 h-8 animate-bounce"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-gray-200">Welcome to BestFriend!</h3>
+                    <p class="text-xs text-gray-400 max-w-xs mt-1 leading-relaxed">No shared feeds inside your feed directory. Customize your profile or publish a video to initialize the network!</p>
+                    <button onclick="openUploadModal()" class="mt-4 bg-gradient-to-r from-violet-600 to-pink-500 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-pink-500/10 hover:from-violet-700 hover:to-pink-600 transition">
+                        Upload First Post
+                    </button>
+                </div>
+
+            </main>
+        </div>
+
+        <!-- Mobile Bottom Nav Bar -->
+        <nav class="md:hidden h-14 border-t border-gray-900 bg-[#080c14] flex items-center justify-around z-20 shrink-0">
+            <button onclick="switchTab('feed-tab')" id="mobile-nav-feed" class="flex flex-col items-center gap-0.5 text-violet-500">
+                <i data-lucide="compass" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold">Discover</span>
+            </button>
+            <button onclick="switchTab('chat-tab')" id="mobile-nav-chat" class="flex flex-col items-center gap-0.5 text-gray-400">
+                <i data-lucide="message-square" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold">Chat</span>
+            </button>
+            <button onclick="openUploadModal()" class="flex flex-col items-center justify-center relative -top-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/20 border-4 border-[#05070c]">
+                    <i data-lucide="plus" class="w-5 h-5 text-white stroke-[2.5]"></i>
+                </div>
+            </button>
+            <button onclick="switchTab('profile-tab')" id="mobile-nav-profile" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-white">
+                <i data-lucide="user" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold">Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Profile Interface Overlay Container -->
+    <div id="profile-tab-overlay" class="hidden absolute inset-0 bg-[#05070c] z-30 flex flex-col">
+        <!-- Profile View Header -->
+        <header class="h-14 border-b border-gray-900 flex items-center justify-between px-4 bg-[#090d16]">
+            <button onclick="switchTab('feed-tab')" class="flex items-center gap-1.5 text-gray-400 hover:text-white font-bold text-xs transition">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Return
+            </button>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-gray-300">My Creator Center</h2>
+            <button onclick="openProfileEditModal()" class="text-gray-400 hover:text-white transition bg-gray-900 p-2 rounded-xl">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+            </button>
+        </header>
+
+        <!-- Profile Detail Panel -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="flex flex-col items-center text-center">
+                <div class="relative">
+                    <img id="my-profile-avatar" src="https://placehold.co/150x150/8b5cf6/ffffff?text=U" class="w-24 h-24 rounded-full border-4 border-violet-500 shadow-xl object-cover" alt="My avatar" onerror="this.src='https://placehold.co/150x150/8b5cf6/ffffff?text=BF'">
+                    <button onclick="openProfileEditModal()" class="absolute bottom-0 right-1 bg-violet-600 hover:bg-violet-700 text-white p-2 rounded-full border-2 border-[#05070c] shadow-md transition">
+                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+                <h3 id="my-profile-name" class="text-xl font-black tracking-tight mt-4 text-white">Guest User</h3>
+                <p id="my-profile-handle" class="text-xs text-pink-400 font-bold">@guest</p>
+                <p id="my-profile-bio" class="text-xs text-gray-400 max-w-sm mt-2 italic leading-relaxed">Let's connect and vibe together!</p>
+            </div>
+
+            <!-- Profile Interactive Stats Summary Cards -->
+            <div class="grid grid-cols-3 gap-3 max-w-md mx-auto">
+                <div class="bg-[#090d16] border border-gray-900 rounded-2xl p-3 text-center">
+                    <span class="block text-xl font-black text-violet-400" id="profile-stat-following">0</span>
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wide">Following</span>
+                </div>
+                <div class="bg-[#090d16] border border-gray-900 rounded-2xl p-3 text-center">
+                    <span class="block text-xl font-black text-pink-400" id="profile-stat-followers">0</span>
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wide">Followers</span>
+                </div>
+                <div class="bg-[#090d16] border border-gray-900 rounded-2xl p-3 text-center">
+                    <span class="block text-xl font-black text-brand-500" id="profile-stat-likes">0</span>
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wide">Likes Rec'd</span>
+                </div>
+            </div>
+
+            <!-- Profile Personal Videos Grid -->
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center gap-2 border-b border-gray-900 pb-3 mb-4">
+                    <i data-lucide="layout-grid" class="w-4 h-4 text-violet-400"></i>
+                    <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider">My Uploaded Catalog</h4>
+                </div>
+                <div id="my-videos-grid" class="grid grid-cols-3 gap-2 sm:gap-3">
+                    <!-- Filled dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Redesigned High-Fidelity Chat Hub -->
+    <div id="chat-tab-overlay" class="hidden absolute inset-0 bg-[#05070c] z-30 flex flex-col md:flex-row">
+        
+        <!-- Left Sidebar: Channels & Connections Selector -->
+        <div class="w-full md:w-80 bg-[#090d16]/95 border-b md:border-b-0 md:border-r border-gray-900 flex flex-col shrink-0">
+            <div class="h-14 border-b border-gray-900 flex items-center justify-between px-4 shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-gradient-to-tr from-violet-600 to-pink-500 flex items-center justify-center">
+                        <i data-lucide="message-square" class="w-3.5 h-3.5 text-white"></i>
+                    </div>
+                    <span class="font-bold text-xs uppercase tracking-wider text-gray-300">Channels</span>
+                </div>
+                <button onclick="switchTab('feed-tab')" class="md:hidden flex items-center gap-1.5 text-gray-400 hover:text-white font-bold text-xs transition">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Exit
+                </button>
+            </div>
+            
+            <div class="p-3 space-y-2.5 flex-1 overflow-y-auto">
+                
+                <!-- Chat Lounge Button -->
+                <button onclick="changeChatChannel('global')" id="btn-chat-global" class="w-full flex items-center justify-between p-3 rounded-2xl transition duration-200 bg-violet-600/10 border border-violet-500/20 text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center text-violet-400">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-gray-200">Global Club Lounge</span>
+                            <span class="block text-[10px] text-gray-500">Public messages stream</span>
+                        </div>
+                    </div>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-md animate-pulse"></span>
+                </button>
+
+                <!-- Aurora AI Companion Button -->
+                <button onclick="changeChatChannel('aurora')" id="btn-chat-aurora" class="w-full flex items-center justify-between p-3 rounded-2xl transition duration-200 text-left hover:bg-[#0d1321]/80 border border-transparent">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-pink-600/10 flex items-center justify-center text-pink-400 relative">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i>
+                            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-pink-500 rounded-full animate-bounce"></span>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-gray-200 flex items-center gap-1">
+                                Aurora AI
+                                <span class="bg-pink-500/20 text-pink-400 text-[8px] font-black px-1.5 py-0.5 rounded-md">Puter</span>
+                            </span>
+                            <span class="block text-[10px] text-gray-400">Interactive AI Companion</span>
+                        </div>
+                    </div>
+                    <span id="puter-connection-badge" class="text-[9px] bg-red-950/40 text-red-400 px-2.5 py-0.5 rounded-full border border-red-900/30 font-medium">Offline</span>
+                </button>
+            </div>
+
+            <!-- Profile / Authorization Sidebar Footer -->
+            <div class="p-4 border-t border-gray-900 bg-[#060a11] flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <img id="chat-sidebar-avatar" src="https://placehold.co/80x80/8b5cf6/ffffff?text=U" class="w-8 h-8 rounded-full border border-gray-800 object-cover" onerror="this.src='https://placehold.co/80x80/8b5cf6/ffffff?text=U'">
+                    <div class="overflow-hidden w-24">
+                        <span id="chat-sidebar-name" class="block text-xs font-bold text-gray-200 truncate">@guest</span>
+                        <span class="block text-[9px] text-gray-500">Chatting as</span>
+                    </div>
+                </div>
+                <button onclick="linkPuterAccount()" title="Link Puter Account" class="p-2 rounded-xl bg-gray-900 border border-gray-850 text-gray-400 hover:text-white hover:border-pink-500/40 transition">
+                    <i data-lucide="key" class="w-4 h-4 text-pink-500"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Section: Active High-Fidelity Chat Viewport -->
+        <div class="flex-1 flex flex-col bg-[#05070c] overflow-hidden relative">
+            
+            <!-- Premium Chat Title Header -->
+            <div class="h-14 border-b border-gray-900 flex items-center justify-between px-4 bg-[#090d16]/70 backdrop-blur-md z-10 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div id="active-chat-icon-container" class="w-8 h-8 rounded-lg bg-violet-600/20 flex items-center justify-center text-violet-400">
+                        <i data-lucide="users" class="w-4 h-4" id="active-chat-icon"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-extrabold text-white" id="active-chat-title">Global Club Lounge</span>
+                        <span class="block text-[10px] text-gray-500" id="active-chat-subtitle">Direct peer-to-peer live chat room</span>
+                    </div>
+                </div>
+                <button onclick="switchTab('feed-tab')" class="hidden md:flex items-center gap-1.5 bg-gray-900 border border-gray-850 px-3.5 py-1.5 rounded-xl text-xs font-bold hover:text-white text-gray-400 transition">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Feed
+                </button>
+            </div>
+
+            <!-- Main Message Container -->
+            <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Dynamically populated chat nodes -->
+            </div>
+
+            <!-- Premium Quick Suggestions (Only displays when chatting with Aurora) -->
+            <div id="aurora-suggestions-bar" class="hidden px-4 py-2.5 bg-[#090d16]/40 border-t border-gray-900/60 overflow-x-auto whitespace-nowrap scrollbar-none flex gap-2">
+                <button onclick="sendQuickAuroraPrompt('✨ Brainstorm a viral challenge idea')" class="text-[11px] bg-pink-950/20 hover:bg-pink-950/40 text-pink-300 border border-pink-500/20 px-3 py-1.5 rounded-xl transition duration-200 inline-block font-semibold">
+                    🎬 Brainstorm Challenge
+                </button>
+                <button onclick="sendQuickAuroraPrompt('✍️ Write an engaging video caption and hashtags')" class="text-[11px] bg-violet-950/20 hover:bg-violet-950/40 text-violet-300 border border-violet-500/20 px-3 py-1.5 rounded-xl transition duration-200 inline-block font-semibold">
+                    ✍️ Write a Caption
+                </button>
+                <button onclick="sendQuickAuroraPrompt('👾 Tell me a crazy fun fact')" class="text-[11px] bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 px-3 py-1.5 rounded-xl transition duration-200 inline-block font-semibold">
+                    💡 Tell Fun Fact
+                </button>
+            </div>
+
+            <!-- Puter Account Missing Prompt (Overlay block on Aurora Companion channel when not linked) -->
+            <div id="puter-auth-prompt-overlay" class="hidden absolute inset-0 bg-[#05070c]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20">
+                <div class="max-w-sm bg-[#0a0f1d] border border-gray-850 p-6 rounded-3xl shadow-2xl relative overflow-hidden glow-pink-violet">
+                    <div class="absolute -top-10 -left-10 w-32 h-32 bg-violet-600/10 rounded-full blur-2xl"></div>
+                    <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl"></div>
+                    
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-600 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-pink-500/20">
+                        <i data-lucide="sparkles" class="w-7 h-7 text-white animate-pulse"></i>
+                    </div>
+                    <h4 class="text-base font-extrabold text-gray-100">Unlock Aurora AI Companion</h4>
+                    <p class="text-xs text-gray-400 mt-2 leading-relaxed">
+                        Aurora is your high-fidelity, interactive, cloud-integrated AI assistant, powered serverless directly by Puter.js!
+                    </p>
+                    <p class="text-[10px] text-gray-500 mt-3 leading-relaxed">
+                        By linking your secure Puter account, you enjoy instant, zero-key, high-speed LLM processing with no API configurations or billings.
+                    </p>
+                    
+                    <button onclick="linkPuterAccount()" class="w-full mt-6 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 hover:from-violet-700 hover:to-pink-600 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-lg shadow-pink-500/20">
+                        Connect with Puter.js
+                    </button>
+                </div>
+            </div>
+
+            <!-- Typing/Response Indicator -->
+            <div id="aurora-typing-indicator" class="hidden px-4 py-2.5 bg-[#05070c]/90 flex items-center gap-2 border-t border-gray-900 text-xs text-pink-400 font-semibold animate-pulse">
+                <div class="flex gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-bounce" style="animation-delay: 0.1s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-bounce" style="animation-delay: 0.2s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-bounce" style="animation-delay: 0.3s"></span>
+                </div>
+                <span>Aurora is formulating an answer...</span>
+            </div>
+
+            <!-- Active Chat Input Bar -->
+            <div class="p-3 bg-gray-950/60 border-t border-gray-900 flex items-center gap-2 shrink-0">
+                <input type="text" id="chat-message-input" placeholder="Say hello to everyone..." class="flex-1 bg-[#090d16] border border-gray-800 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 text-white placeholder-gray-500" onkeydown="if(event.key === 'Enter') handleChatSubmit()">
+                <button onclick="handleChatSubmit()" class="bg-gradient-to-r from-violet-600 to-pink-500 hover:from-violet-700 hover:to-pink-600 text-white p-3 rounded-xl transition duration-200 shrink-0">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Creation Modal -->
+    <div id="upload-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-[#090d16] border border-gray-850 w-full max-w-lg rounded-3xl p-6 relative overflow-hidden shadow-2xl">
+            <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-900 p-2 rounded-xl border border-gray-850 transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <h3 class="text-lg font-bold mb-1 flex items-center gap-2">
+                <i data-lucide="clapperboard" class="text-violet-500"></i> Post New Memory
+            </h3>
+            <p class="text-xs text-gray-400 mb-5">Share vertical short-clips globally with the BestFriend stream.</p>
+
+            <form id="upload-form" class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Posting Method</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="btn-method-url" onclick="setUploadMethod('url')" class="bg-violet-600 text-white text-xs font-bold py-2.5 rounded-xl border border-violet-500 transition">
+                            Direct Video MP4 Link
+                        </button>
+                        <button type="button" id="btn-method-file" onclick="setUploadMethod('file')" class="bg-gray-900 text-gray-400 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-gray-850 transition">
+                            Device Video File
+                        </button>
+                    </div>
+                </div>
+
+                <!-- URL Method Fields -->
+                <div id="field-video-url">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Direct MP4 Source URL</label>
+                    <input type="url" id="input-video-url" class="w-full bg-gray-950 border border-gray-850 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 text-white" placeholder="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4">
+                    <div class="flex items-center gap-1.5 mt-2 text-[10px] text-gray-500">
+                        <i data-lucide="info" class="w-3.5 h-3.5 text-pink-400 flex-shrink-0"></i>
+                        <span>Need testing streams? Copy standard open directory MP4 streams.</span>
+                    </div>
+                </div>
+
+                <!-- Local File Method Fields -->
+                <div id="field-video-file" class="hidden">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Select File from Device</label>
+                    <input type="file" id="input-video-file" accept="video/mp4,video/webm" class="w-full bg-gray-950 border border-gray-850 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-violet-500 text-white">
+                    <p class="text-[10px] text-pink-400 mt-2">Note: Local sandbox files play instantly in your browser session, but MP4 links save globally.</p>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Post Caption</label>
+                    <input type="text" id="input-video-title" required class="w-full bg-gray-950 border border-gray-850 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 text-white" placeholder="Feeling absolutely creative today! #viral #aesthetic">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Audio Track Name</label>
+                    <input type="text" id="input-video-music" class="w-full bg-gray-950 border border-gray-850 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 text-white" placeholder="Original sound - @yourname">
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white font-extrabold text-xs py-3.5 rounded-xl transition shadow-lg shadow-pink-500/15">
+                    Share Globally
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Profile Editor Modal -->
+    <div id="profile-edit-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-[#090d16] border border-gray-850 w-full max-w-md rounded-3xl p-6 relative overflow-hidden shadow-2xl">
+            <button onclick="closeProfileEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-900 p-2 rounded-xl border border-gray-850 transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <h3 class="text-lg font-bold mb-1 flex items-center gap-2">
+                <i data-lucide="user" class="text-pink-500"></i> Design Creator Profile
+            </h3>
+            <p class="text-xs text-gray-400 mb-5">Customize how everyone sees you inside the BestFriend feed.</p>
+
+            <form id="profile-edit-form" class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Display Username</label>
+                    <input type="text" id="input-profile-name" required class="w-full bg-gray-950 border border-gray-850 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 text-white">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Write a Bio</label>
+                    <textarea id="input-profile-bio" rows="3" class="w-full bg-gray-950 border border-gray-850 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 text-white" placeholder="Say something unique!"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Profile Theme Color</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" onclick="selectAvatarStyle('8b5cf6')" class="avatar-option border-2 border-violet-500 rounded-xl p-1 bg-gray-900 flex justify-center">
+                            <img src="https://placehold.co/80x80/8b5cf6/ffffff?text=U" class="w-10 h-10 rounded-full">
+                        </button>
+                        <button type="button" onclick="selectAvatarStyle('ec4899')" class="avatar-option border border-gray-850 rounded-xl p-1 bg-gray-900 flex justify-center">
+                            <img src="https://placehold.co/80x80/ec4899/ffffff?text=U" class="w-10 h-10 rounded-full">
+                        </button>
+                        <button type="button" onclick="selectAvatarStyle('10b981')" class="avatar-option border border-gray-850 rounded-xl p-1 bg-gray-900 flex justify-center">
+                            <img src="https://placehold.co/80x80/10b981/ffffff?text=U" class="w-10 h-10 rounded-full">
+                        </button>
+                        <button type="button" onclick="selectAvatarStyle('f59e0b')" class="avatar-option border border-gray-850 rounded-xl p-1 bg-gray-900 flex justify-center">
+                            <img src="https://placehold.co/80x80/f59e0b/ffffff?text=U" class="w-10 h-10 rounded-full">
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold text-xs py-3 rounded-xl transition">
+                    Save Profile Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Active Floating Toast Container -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Dynamic Overlay comments drawer -->
+    <div id="comments-drawer" class="fixed right-0 bottom-0 md:top-16 md:bottom-0 w-full md:w-96 bg-[#090d16] border-t md:border-t-0 md:border-l border-gray-800/80 transform translate-y-full md:translate-y-0 md:translate-x-full transition-transform duration-300 ease-out z-40 flex flex-col h-[75vh] md:h-auto">
+        <div class="flex items-center justify-between p-4 border-b border-gray-900">
+            <h4 class="font-extrabold text-xs flex items-center gap-2">
+                <i data-lucide="message-square" class="w-4 h-4 text-pink-500"></i>
+                Feed Comments (<span id="drawer-comments-count">0</span>)
+            </h4>
+            <button onclick="closeCommentsDrawer()" class="text-gray-400 hover:text-white bg-gray-950 p-1.5 rounded-lg border border-gray-800 transition">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable comment container list -->
+        <div id="drawer-comments-list" class="flex-1 overflow-y-auto p-4 space-y-3.5">
+            <!-- Content fills in-session -->
+        </div>
+
+        <!-- Inline Comments Entry Bar -->
+        <form id="comment-form" class="p-4 border-t border-gray-900 bg-gray-950 flex items-center gap-2">
+            <input type="text" id="input-comment-text" required placeholder="Add friendly feedback..." class="flex-1 bg-gray-900 border border-gray-850 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-pink-500 text-white placeholder-gray-500">
+            <button type="submit" class="bg-gradient-to-r from-violet-600 to-pink-500 text-white p-2.5 rounded-xl transition">
+                <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Firestore Core and App Logic Controller Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            addDoc, 
+            updateDoc, 
+            collection, 
+            query, 
+            where, 
+            onSnapshot, 
+            deleteDoc,
+            getDocs 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global properties provided by runtime or default configs
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bestfriend-v3-dev';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "mock-api-key",
+                authDomain: "mock-auth-domain",
+                projectId: "mock-project-id",
+                storageBucket: "mock-storage-bucket",
+                messagingSenderId: "mock-sender-id",
+                appId: "mock-app-id"
+              };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Core memory systems
+        let currentUser = null;
+        let userProfile = null;
+        let currentFeedType = 'foryou';
+        let selectedUploadMethod = 'url';
+        let activeSelectedAvatarColor = '8b5cf6';
+        let currentActiveCommentVideoId = null;
+
+        // Puter.js systems configurations
+        let isPuterLinked = false;
+        let puterUser = null;
+        let activeChatChannel = 'global';
+        let localChatMessages = [];
+        let auroraChatHistory = [
+            {
+                sender: 'aurora',
+                username: 'Aurora AI',
+                avatarUrl: 'https://placehold.co/80x80/ec4899/ffffff?text=AI',
+                text: "Hi there! I am Aurora, your cloud-integrated AI BestFriend! 💖 I am linked directly via your Puter account. Let's talk about viral trends, video ideas, or just chill! How can I help you vibes today? ✨",
+                createdAt: Date.now()
+            }
+        ];
+        
+        window.isMuted = true;
+
+        // Memory caches matching RULE 2 parameters
+        let localVideos = [];
+        let localProfiles = {};
+        let localLikes = [];
+        let localComments = [];
+        let localFollows = [];
+
+        // Ultra-stable, high-availability premium stock loops
+        const fallbackInitialVideos = [
+            {
+                id: "initial-1",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                title: "Catching the sunset rays! Neon city magic is real 🌆🔥 #goldenhour #sunset #vibes",
+                music: "Summer Dreams - City Vaporwave Orchestra",
+                username: "city_glow",
+                avatarUrl: "https://placehold.co/80x80/8b5cf6/ffffff?text=CG",
+                userId: "bot-user-1",
+                createdAt: Date.now() - 3600000
+            },
+            {
+                id: "initial-2",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+                title: "Skateboarding down the canyon paths. Pure thrill! 🛹🌲 #explore #shred #skatelife",
+                music: "Thrasher Beat - Skatepunk Collective",
+                username: "skate_canyon",
+                avatarUrl: "https://placehold.co/80x80/10b981/ffffff?text=SC",
+                userId: "bot-user-2",
+                createdAt: Date.now() - 7200000
+            },
+            {
+                id: "initial-3",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+                title: "Weekend adventure loops on offroad trails. Always say yes to adventure! 🚙🏔️ #offroad #camp",
+                music: "Wanderer Paths - Acoustic Chill Acoustic",
+                username: "wander_wild",
+                avatarUrl: "https://placehold.co/80x80/ec4899/ffffff?text=WW",
+                userId: "bot-user-3",
+                createdAt: Date.now() - 10800000
+            },
+            {
+                id: "initial-4",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+                title: "Riding into the neon grid. Synthwave music on maximum! 🏎️⚡ #synthwave #neon #retro",
+                music: "Hyperdrive Ride - Retrowave DJ Set",
+                username: "grid_cruiser",
+                avatarUrl: "https://placehold.co/80x80/f59e0b/ffffff?text=GC",
+                userId: "bot-user-4",
+                createdAt: Date.now() - 14400000
+            }
+        ];
+
+        window.showToast = function(message, type = 'success') {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl border text-xs font-bold shadow-2xl transition-all duration-300 transform translate-x-12 opacity-0 pointer-events-auto bg-[#0a0f1d] ${
+                type === 'success' ? 'border-violet-500/50 text-violet-300' : 'border-pink-500/50 text-pink-300'
+            }`;
+            
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i> <span>${message}</span>`;
+            toastContainer.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-12', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-12', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        };
+
+        async function runAuthentication() {
+            try {
+                // RULE 3 Priority sequence
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.warn("Auth initialization failed, reverting safely to anonymous signin:", error);
+                try {
+                    await signInAnonymously(auth);
+                } catch (e) {
+                    showToast("Connected in offline session", "error");
+                }
+            }
+        }
+
+        // Auth state observer hook
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-indicator').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/20";
+                
+                // Fetch User Profile path under RULE 1 constraints
+                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', user.uid);
+                const profileSnap = await getDoc(profileRef);
+
+                if (profileSnap.exists()) {
+                    userProfile = profileSnap.data();
+                } else {
+                    const cleanId = user.uid.slice(0, 5);
+                    const randomName = "Friend_" + cleanId;
+                    userProfile = {
+                        userId: user.uid,
+                        username: randomName,
+                        displayName: "BestFriend Fan",
+                        avatarColor: "8b5cf6",
+                        avatarUrl: `https://placehold.co/150x150/8b5cf6/ffffff?text=${cleanId.toUpperCase()}`,
+                        bio: "Vibing in the social lounge!",
+                        createdAt: Date.now()
+                    };
+                    await setDoc(profileRef, userProfile);
+                }
+
+                document.getElementById('username-display').textContent = `@${userProfile.username}`;
+                updateMyProfileUI();
+                
+                startCollectionListeners();
+                checkPuterStatus();
+            } else {
+                document.getElementById('auth-indicator').className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
+                document.getElementById('username-display').textContent = "Connecting...";
+            }
+        });
+
+        // RULE 1 / RULE 2 Watchers configurations
+        function startCollectionListeners() {
+            if (!currentUser) return;
+
+            // Monitor Videos (RULE 1 Path)
+            const videosRef = collection(db, 'artifacts', appId, 'public', 'data', 'videos');
+            onSnapshot(videosRef, (snapshot) => {
+                const fetched = [];
+                snapshot.forEach(doc => {
+                    fetched.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort ascending/descending in memory (RULE 2 compliance)
+                fetched.sort((a, b) => b.createdAt - a.createdAt);
+                
+                if (fetched.length === 0) {
+                    prepopulateDatabase();
+                } else {
+                    localVideos = fetched;
+                    renderMainFeed();
+                }
+            }, (err) => {
+                console.error("Videos stream failed. Loading local media cache.", err);
+                localVideos = [...fallbackInitialVideos];
+                renderMainFeed();
+            });
+
+            // Watch Likes
+            const likesRef = collection(db, 'artifacts', appId, 'public', 'data', 'likes');
+            onSnapshot(likesRef, (snapshot) => {
+                const fetched = [];
+                snapshot.forEach(doc => fetched.push(doc.data()));
+                localLikes = fetched;
+                updateStatsAndInteractions();
+            }, (err) => console.error(err));
+
+            // Watch Comments
+            const commentsRef = collection(db, 'artifacts', appId, 'public', 'data', 'comments');
+            onSnapshot(commentsRef, (snapshot) => {
+                const fetched = [];
+                snapshot.forEach(doc => fetched.push({ id: doc.id, ...doc.data() }));
+                localComments = fetched;
+                updateStatsAndInteractions();
+                if (currentActiveCommentVideoId) {
+                    renderComments(currentActiveCommentVideoId);
+                }
+            }, (err) => console.error(err));
+
+            // Watch Profiles
+            const profilesRef = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
+            onSnapshot(profilesRef, (snapshot) => {
+                const directory = {};
+                snapshot.forEach(doc => {
+                    directory[doc.id] = doc.data();
+                });
+                localProfiles = directory;
+                renderMainFeed();
+                updateSuggestedCreators();
+            }, (err) => console.error(err));
+
+            // Watch Follow relationships
+            const followsRef = collection(db, 'artifacts', appId, 'public', 'data', 'follows');
+            onSnapshot(followsRef, (snapshot) => {
+                const fetched = [];
+                snapshot.forEach(doc => fetched.push(doc.data()));
+                localFollows = fetched;
+                updateStatsAndInteractions();
+                updateSuggestedCreators();
+            }, (err) => console.error(err));
+
+            // Watch Global Chat (RULE 1 Path)
+            const chatRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_chat');
+            onSnapshot(chatRef, (snapshot) => {
+                const fetched = [];
+                snapshot.forEach(doc => {
+                    fetched.push({ id: doc.id, ...doc.data() });
+                });
+                fetched.sort((a, b) => a.createdAt - b.createdAt);
+                localChatMessages = fetched;
+                if (activeChatChannel === 'global') {
+                    renderChatMessages();
+                }
+            }, (err) => console.error(err));
+        }
+
+        async function prepopulateDatabase() {
+            try {
+                for (const v of fallbackInitialVideos) {
+                    const videoDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'videos', v.id);
+                    await setDoc(videoDocRef, v);
+                }
+            } catch (error) {
+                console.error("Failed database generation seed:", error);
+            }
+        }
+
+        // Video intersection play loop configs
+        let currentOpenVideoElements = [];
+        const videoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const videoEl = entry.target.querySelector('video');
+                const overlayPlayIcon = entry.target.querySelector('.play-state-overlay');
+                const canvasFallback = entry.target.querySelector('.media-fallback-canvas');
+                
+                if (entry.isIntersecting) {
+                    if (videoEl && !videoEl.dataset.broken) {
+                        videoEl.muted = window.isMuted;
+                        videoEl.play().then(() => {
+                            if (overlayPlayIcon) overlayPlayIcon.classList.add('hidden');
+                        }).catch((err) => {
+                            console.warn("Autoplay promise rejected. Showing standard interactive tap play indicator:", err);
+                            if (overlayPlayIcon) overlayPlayIcon.classList.remove('hidden');
+                        });
+                    }
+                    if (canvasFallback) {
+                        startCanvasAnimation(canvasFallback);
+                    }
+                } else {
+                    if (videoEl) videoEl.pause();
+                    if (overlayPlayIcon) overlayPlayIcon.classList.add('hidden');
+                    if (canvasFallback) {
+                        stopCanvasAnimation(canvasFallback);
+                    }
+                }
+            });
+        }, { threshold: 0.6 });
+
+        // Aesthetic Canvas fallback animation loop generators (Resolves sandbox media blocked errors)
+        const activeCanvasIntervals = {};
+        function startCanvasAnimation(canvas) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = 480;
+            canvas.height = 800;
+            const themeColor = canvas.dataset.themeColor || '8b5cf6';
+            
+            let frame = 0;
+            const particles = [];
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 4 + 1,
+                    speedY: -Math.random() * 1.5 - 0.5,
+                    opacity: Math.random() * 0.7 + 0.3
+                });
+            }
+
+            function draw() {
+                ctx.fillStyle = '#060a12';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw pulsating Synthwave grid
+                ctx.strokeStyle = `rgba(139, 92, 246, ${0.05 + Math.sin(frame * 0.02) * 0.03})`;
+                ctx.lineWidth = 1.5;
+                for (let x = 0; x < canvas.width; x += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                for (let y = 0; y < canvas.height; y += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+
+                // Pulsing Center Glow Circle
+                const radGrd = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 10, canvas.width/2, canvas.height/2, 220);
+                radGrd.addColorStop(0, `rgba(236, 72, 153, ${0.12 + Math.sin(frame * 0.05) * 0.05})`);
+                radGrd.addColorStop(1, 'rgba(6, 10, 18, 0)');
+                ctx.fillStyle = radGrd;
+                ctx.beginPath();
+                ctx.arc(canvas.width/2, canvas.height/2, 250, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw pulsating cyber waves matching the sound simulation
+                ctx.beginPath();
+                ctx.strokeStyle = `#${themeColor}`;
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = `#${themeColor}`;
+                for (let i = 0; i < canvas.width; i++) {
+                    const y = canvas.height / 2 + Math.sin(i * 0.015 + frame * 0.06) * 45 * Math.sin(frame * 0.02) + Math.cos(i * 0.005 - frame * 0.03) * 15;
+                    if (i === 0) ctx.moveTo(i, y);
+                    else ctx.lineTo(i, y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0; // reset
+
+                // Particle systems
+                particles.forEach(p => {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    p.y += p.speedY;
+                    if (p.y < 0) {
+                        p.y = canvas.height;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+
+                frame++;
+                activeCanvasIntervals[canvas.id] = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        function stopCanvasAnimation(canvas) {
+            if (activeCanvasIntervals[canvas.id]) {
+                cancelAnimationFrame(activeCanvasIntervals[canvas.id]);
+                delete activeCanvasIntervals[canvas.id];
+            }
+        }
+
+        // When a video encounters CORS or iframe security blocking error
+        window.handleVideoError = function(videoEl) {
+            const container = videoEl.parentElement;
+            videoEl.dataset.broken = "true";
+            videoEl.classList.add('hidden');
+
+            const idStr = "canvas_" + Math.random().toString(36).substr(2, 9);
+            const canvas = document.createElement('canvas');
+            canvas.id = idStr;
+            canvas.className = "media-fallback-canvas absolute inset-0 w-full h-full object-cover z-0 pointer-events-none";
+            
+            // Deduce a clean color theme match from layout settings
+            const cardParent = container.closest('.video-snap-item');
+            const colorCode = cardParent ? 'ec4899' : '8b5cf6';
+            canvas.dataset.themeColor = colorCode;
+
+            container.appendChild(canvas);
+            
+            // Add a beautiful overlay badge notification to inform the user cleanly
+            const labelBadge = document.createElement('div');
+            labelBadge.className = "absolute top-4 left-4 bg-violet-600/25 border border-violet-500/40 backdrop-blur text-[10px] text-violet-300 px-2.5 py-1 rounded-full z-20 flex items-center gap-1.5 animate-pulse";
+            labelBadge.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Simulated visualizer active`;
+            container.appendChild(labelBadge);
+            lucide.createIcons();
+
+            startCanvasAnimation(canvas);
+        };
+
+        window.toggleMute = function() {
+            window.isMuted = !window.isMuted;
+            
+            document.querySelectorAll('video').forEach(vid => {
+                vid.muted = window.isMuted;
+            });
+
+            document.querySelectorAll('.mute-btn-icon').forEach(icon => {
+                icon.className = `mute-btn-icon w-5 h-5 ${window.isMuted ? 'text-pink-400' : 'text-emerald-400 animate-pulse'}`;
+                icon.setAttribute('data-lucide', window.isMuted ? 'volume-x' : 'volume-2');
+            });
+
+            lucide.createIcons();
+            showToast(window.isMuted ? "Sound muted" : "Audio unmuted!", "success");
+        };
+
+        // Render TikTok styled snap screen cards
+        function renderMainFeed() {
+            const feedContainer = document.getElementById('feed-container');
+            feedContainer.innerHTML = '';
+
+            let displayVideos = [...localVideos];
+            if (currentFeedType === 'following' && currentUser) {
+                const followingIds = localFollows
+                    .filter(f => f.followerId === currentUser.uid)
+                    .map(f => f.followingId);
+                displayVideos = localVideos.filter(v => followingIds.includes(v.userId) || v.userId === currentUser.uid);
+            }
+
+            if (displayVideos.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+            }
+
+            displayVideos.forEach((v, index) => {
+                const profile = localProfiles[v.userId] || {
+                    username: v.username || "creator",
+                    displayName: v.username || "BestFriend",
+                    avatarUrl: v.avatarUrl || "https://placehold.co/80x80/8b5cf6/ffffff?text=C"
+                };
+
+                const isLiked = localLikes.some(l => l.userId === currentUser?.uid && l.videoId === v.id);
+                const likeCount = localLikes.filter(l => l.videoId === v.id).length;
+                const commentCount = localComments.filter(c => c.videoId === v.id).length;
+                const isFollowing = localFollows.some(f => f.followerId === currentUser?.uid && f.followingId === v.userId);
+
+                const formattedCaption = v.title.replace(/(#\w+)/g, '<span class="text-pink-400 font-bold">$1</span>');
+
+                const videoItem = document.createElement('div');
+                videoItem.className = "video-snap-item relative w-full h-full flex-shrink-0 flex items-center justify-center bg-black border-b border-gray-950/40";
+                videoItem.dataset.videoId = v.id;
+
+                videoItem.innerHTML = `
+                    <div class="relative w-full h-full max-w-[480px] bg-[#05070c] flex items-center justify-center overflow-hidden">
+                        <video class="w-full h-full object-cover cursor-pointer z-0" loop playsinline muted src="${v.videoUrl}" onerror="handleVideoError(this)"></video>
+                        
+                        <div class="video-touch-zone absolute inset-0 z-10" onclick="toggleVideoPlayback(this)"></div>
+
+                        <!-- Tap/Pause Indicator Icon -->
+                        <div class="play-state-overlay hidden absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none z-10 transition duration-300">
+                            <div class="w-14 h-14 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-white">
+                                <i data-lucide="play" class="w-6 h-6 fill-white ml-0.5"></i>
+                            </div>
+                        </div>
+
+                        <!-- TikTok Side Interactions Menu Bar -->
+                        <div class="absolute right-3.5 bottom-24 flex flex-col items-center gap-4.5 z-20">
+                            <!-- Creator Profile Avatar -->
+                            <div class="relative flex flex-col items-center mb-1">
+                                <img src="${profile.avatarUrl}" class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-lg" alt="creator" onerror="this.src='https://placehold.co/80x80/8b5cf6/ffffff?text=BF'">
+                                ${
+                                    currentUser && v.userId !== currentUser.uid
+                                        ? `<button onclick="toggleFollow('${v.userId}')" class="absolute -bottom-1 bg-brand-500 hover:bg-pink-600 text-white p-0.5 rounded-full border border-black shadow-md transition transform active:scale-90">
+                                            <i data-lucide="${isFollowing ? 'check' : 'plus'}" class="w-2.5 h-2.5 stroke-[3]"></i>
+                                           </button>`
+                                        : ''
+                                }
+                            </div>
+
+                            <!-- Love Button -->
+                            <button onclick="toggleLike('${v.id}')" class="flex flex-col items-center group">
+                                <div class="w-11 h-11 rounded-full bg-black/40 backdrop-blur border border-gray-850 flex items-center justify-center shadow-lg transition duration-200 group-hover:scale-105 active:scale-95">
+                                    <i data-lucide="heart" class="w-5 h-5 ${isLiked ? 'text-pink-500 fill-pink-500 animate-pulse' : 'text-white'}"></i>
+                                </div>
+                                <span class="text-[11px] font-bold text-gray-300 mt-1">${likeCount}</span>
+                            </button>
+
+                            <!-- Comments Drawer Button -->
+                            <button onclick="openCommentsDrawer('${v.id}')" class="flex flex-col items-center group">
+                                <div class="w-11 h-11 rounded-full bg-black/40 backdrop-blur border border-gray-850 flex items-center justify-center shadow-lg transition duration-200 group-hover:scale-105 active:scale-95">
+                                    <i data-lucide="message-square" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <span class="text-[11px] font-bold text-gray-300 mt-1">${commentCount}</span>
+                            </button>
+
+                            <!-- Mute Control Toggle -->
+                            <button onclick="toggleMute()" class="flex flex-col items-center group">
+                                <div class="w-11 h-11 rounded-full bg-black/40 backdrop-blur border border-gray-850 flex items-center justify-center shadow-lg transition duration-200 group-hover:scale-105 active:scale-95">
+                                    <i data-lucide="${window.isMuted ? 'volume-x' : 'volume-2'}" class="mute-btn-icon w-5 h-5 ${window.isMuted ? 'text-pink-400' : 'text-emerald-400'}"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-gray-400 mt-1">Sound</span>
+                            </button>
+
+                            <!-- Share Link Button -->
+                            <button onclick="shareVideo('${v.id}')" class="flex flex-col items-center group">
+                                <div class="w-11 h-11 rounded-full bg-black/40 backdrop-blur border border-gray-850 flex items-center justify-center shadow-lg transition duration-200 group-hover:scale-105 active:scale-95">
+                                    <i data-lucide="share-2" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-gray-400 mt-1">Share</span>
+                            </button>
+                        </div>
+
+                        <!-- Video Metadata & Captions Panel -->
+                        <div class="absolute left-4 right-16 bottom-5 z-20 text-white pointer-events-none drop-shadow-lg">
+                            <h3 class="font-bold text-sm sm:text-base flex items-center gap-1.5 pointer-events-auto cursor-pointer font-['Plus_Jakarta_Sans']">
+                                @${profile.username}
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-violet-400 fill-violet-950/20"></i>
+                            </h3>
+                            <p class="text-xs font-normal text-gray-100 line-clamp-2 mt-1 pointer-events-auto leading-relaxed">
+                                ${formattedCaption}
+                            </p>
+                            
+                            <!-- Spinning Soundtrack Tape Marquee -->
+                            <div class="flex items-center gap-2 mt-3 overflow-hidden w-44 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-lg border border-gray-850">
+                                <i data-lucide="music" class="w-3 h-3 text-gray-300 flex-shrink-0 animate-spin" style="animation-duration: 5s"></i>
+                                <div class="relative w-full overflow-hidden h-3.5">
+                                    <div class="absolute whitespace-nowrap animate-marquee text-[10px] text-gray-300 font-semibold">
+                                        ${v.music || 'Original sound - ' + profile.username}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${v.music || 'Original sound - ' + profile.username}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Smooth background shade gradients -->
+                        <div class="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-0"></div>
+                        <div class="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none z-0"></div>
+                    </div>
+                `;
+
+                feedContainer.appendChild(videoItem);
+                videoObserver.observe(videoItem);
+            });
+
+            lucide.createIcons();
+            currentOpenVideoElements = Array.from(feedContainer.querySelectorAll('video'));
+        }
+
+        window.toggleVideoPlayback = function(overlayDiv) {
+            const container = overlayDiv.parentElement;
+            const video = container.querySelector('video');
+            const playOverlay = container.querySelector('.play-state-overlay');
+
+            if (!video || video.dataset.broken === "true") return;
+
+            if (video.paused) {
+                video.muted = window.isMuted;
+                video.play().then(() => {
+                    playOverlay.classList.add('hidden');
+                }).catch((err) => {
+                    console.warn(err);
+                    playOverlay.classList.remove('hidden');
+                });
+            } else {
+                video.pause();
+                playOverlay.classList.remove('hidden');
+            }
+        };
+
+        window.toggleLike = async function(videoId) {
+            if (!currentUser) return;
+
+            const likeId = `${currentUser.uid}_${videoId}`;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'likes', likeId);
+            const alreadyLiked = localLikes.some(l => l.userId === currentUser.uid && l.videoId === videoId);
+
+            try {
+                if (alreadyLiked) {
+                    await deleteDoc(docRef);
+                    showToast("Like removed", "error");
+                } else {
+                    await setDoc(docRef, {
+                        userId: currentUser.uid,
+                        videoId: videoId,
+                        createdAt: Date.now()
+                    });
+                    showToast("Added to likes!", "success");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        window.toggleFollow = async function(targetUserId) {
+            if (!currentUser) return;
+            if (currentUser.uid === targetUserId) return;
+
+            const followId = `${currentUser.uid}_${targetUserId}`;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'follows', followId);
+            const alreadyFollowing = localFollows.some(f => f.followerId === currentUser.uid && f.followingId === targetUserId);
+
+            try {
+                if (alreadyFollowing) {
+                    await deleteDoc(docRef);
+                    showToast("Unfollowed", "error");
+                } else {
+                    await setDoc(docRef, {
+                        followerId: currentUser.uid,
+                        followingId: targetUserId,
+                        createdAt: Date.now()
+                    });
+                    showToast("Following creator!", "success");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        window.shareVideo = function(videoId) {
+            const fakeUrl = `${window.location.origin}${window.location.pathname}?video=${videoId}`;
+            const tempInput = document.createElement('input');
+            tempInput.value = fakeUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast("Copied video link to share!", "success");
+        };
+
+        window.changeFeedType = function(type) {
+            currentFeedType = type;
+            
+            document.getElementById('btn-feed-foryou').className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-900/60 hover:text-gray-100 transition";
+            document.getElementById('btn-feed-following').className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-900/60 hover:text-gray-100 transition";
+            document.getElementById('mobile-feed-foryou').className = "text-xs font-semibold text-gray-400 hover:text-white transition px-2 py-0.5";
+            document.getElementById('mobile-feed-following').className = "text-xs font-semibold text-gray-400 hover:text-white transition px-2 py-0.5";
+
+            if (type === 'foryou') {
+                document.getElementById('btn-feed-foryou').className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-violet-600/10 text-violet-400 transition";
+                document.getElementById('mobile-feed-foryou').className = "text-xs font-bold text-white bg-violet-600/20 px-3 py-1 rounded-full transition";
+            } else {
+                document.getElementById('btn-feed-following').className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-violet-600/10 text-violet-400 transition";
+                document.getElementById('mobile-feed-following').className = "text-xs font-bold text-white bg-violet-600/20 px-3 py-1 rounded-full transition";
+            }
+
+            renderMainFeed();
+        };
+
+        window.switchTab = function(tabName) {
+            const profileOverlay = document.getElementById('profile-tab-overlay');
+            const chatOverlay = document.getElementById('chat-tab-overlay');
+            const mobileFeedBtn = document.getElementById('mobile-nav-feed');
+            const mobileProfileBtn = document.getElementById('mobile-nav-profile');
+            const mobileChatBtn = document.getElementById('mobile-nav-chat');
+            const desktopChatBtn = document.getElementById('btn-feed-chat');
+            const desktopProfileBtn = document.getElementById('btn-feed-profile');
+            const desktopForyouBtn = document.getElementById('btn-feed-foryou');
+            const desktopFollowingBtn = document.getElementById('btn-feed-following');
+
+            [desktopChatBtn, desktopProfileBtn, desktopForyouBtn, desktopFollowingBtn].forEach(el => {
+                if (el) el.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-900/60 hover:text-gray-100 transition-all duration-200";
+            });
+
+            [mobileFeedBtn, mobileProfileBtn, mobileChatBtn].forEach(btn => {
+                if (btn) {
+                    btn.classList.remove('text-violet-500');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+
+            profileOverlay.classList.add('hidden');
+            chatOverlay.classList.add('hidden');
+
+            if (tabName === 'profile-tab') {
+                profileOverlay.classList.remove('hidden');
+                if (mobileProfileBtn) mobileProfileBtn.classList.add('text-violet-500');
+                if (desktopProfileBtn) desktopProfileBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-violet-600/10 text-violet-400 transition-all duration-200";
+                
+                currentOpenVideoElements.forEach(v => v.pause());
+            } else if (tabName === 'chat-tab') {
+                chatOverlay.classList.remove('hidden');
+                if (mobileChatBtn) mobileChatBtn.classList.add('text-violet-500');
+                if (desktopChatBtn) desktopChatBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-violet-600/10 text-violet-400 transition-all duration-200";
+                
+                currentOpenVideoElements.forEach(v => v.pause());
+                
+                checkPuterStatus();
+                renderChatLayout();
+            } else {
+                if (mobileFeedBtn) mobileFeedBtn.classList.add('text-violet-500');
+                if (currentFeedType === 'foryou') {
+                    if (desktopForyouBtn) desktopForyouBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-violet-600/10 text-violet-400 transition-all duration-200";
+                } else {
+                    if (desktopFollowingBtn) desktopFollowingBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-violet-600/10 text-violet-400 transition-all duration-200";
+                }
+                
+                renderMainFeed();
+            }
+        };
+
+        function updateSuggestedCreators() {
+            const creatorsList = document.getElementById('suggested-creators-list');
+            creatorsList.innerHTML = '';
+
+            const profiles = Object.values(localProfiles);
+            const currentUserId = currentUser?.uid;
+
+            const relevantProfiles = profiles
+                .filter(p => p.userId !== currentUserId)
+                .slice(0, 4);
+
+            if (relevantProfiles.length === 0) {
+                creatorsList.innerHTML = `<div class="text-xs text-gray-500 italic px-1">Gathering creators...</div>`;
+                return;
+            }
+
+            relevantProfiles.forEach(p => {
+                const isFollowing = localFollows.some(f => f.followerId === currentUserId && f.followingId === p.userId);
+                
+                const card = document.createElement('div');
+                card.className = "flex items-center justify-between gap-2 p-1.5 bg-gray-950/20 hover:bg-gray-900/40 rounded-xl transition";
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <img src="${p.avatarUrl}" class="w-8 h-8 rounded-full border border-gray-800 object-cover" onerror="this.src='https://placehold.co/80x80/8b5cf6/ffffff?text=BF'">
+                        <div class="overflow-hidden w-24">
+                            <span class="block text-xs font-bold text-gray-200 truncate">@${p.username}</span>
+                            <span class="block text-[9px] text-gray-500 truncate">${p.displayName || p.username}</span>
+                        </div>
+                    </div>
+                    <button onclick="toggleFollow('${p.userId}')" class="px-2 py-1 rounded-lg text-[10px] font-bold ${
+                        isFollowing ? 'bg-gray-900 text-gray-400' : 'bg-violet-600 hover:bg-violet-700 text-white'
+                    } transition">
+                        ${isFollowing ? 'Following' : 'Follow'}
+                    </button>
+                `;
+                creatorsList.appendChild(card);
+            });
+        }
+
+        window.openCommentsDrawer = function(videoId) {
+            currentActiveCommentVideoId = videoId;
+            const drawer = document.getElementById('comments-drawer');
+            drawer.classList.remove('translate-y-full', 'md:translate-x-full');
+            renderComments(videoId);
+        };
+
+        window.closeCommentsDrawer = function() {
+            currentActiveCommentVideoId = null;
+            const drawer = document.getElementById('comments-drawer');
+            drawer.classList.add('translate-y-full', 'md:translate-x-full');
+        };
+
+        function renderComments(videoId) {
+            const list = document.getElementById('drawer-comments-list');
+            list.innerHTML = '';
+
+            const comments = localComments.filter(c => c.videoId === videoId);
+            document.getElementById('drawer-comments-count').textContent = comments.length;
+
+            if (comments.length === 0) {
+                list.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 text-center">
+                        <i data-lucide="message-square" class="w-8 h-8 text-gray-600 mb-2"></i>
+                        <p class="text-xs font-bold text-gray-500">No comments yet</p>
+                        <p class="text-[10px] text-gray-600">Be the first to say something!</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            comments.forEach(c => {
+                const authorProfile = localProfiles[c.userId] || {
+                    username: c.username || "user",
+                    displayName: "BestFriend",
+                    avatarUrl: c.avatarUrl || "https://placehold.co/80x80/8b5cf6/ffffff?text=U"
+                };
+
+                const div = document.createElement('div');
+                div.className = "flex gap-3 bg-gray-950/40 p-2.5 rounded-xl border border-gray-900";
+                div.innerHTML = `
+                    <img src="${authorProfile.avatarUrl}" class="w-7 h-7 rounded-full border border-gray-850 object-cover" onerror="this.src='https://placehold.co/80x80/8b5cf6/ffffff?text=U'">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-gray-300">@${authorProfile.username}</span>
+                            <span class="text-[8px] text-gray-600">${new Date(c.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300 mt-0.5">${c.text}</p>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        document.getElementById('comment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser || !currentActiveCommentVideoId) return;
+
+            const input = document.getElementById('input-comment-text');
+            const message = input.value.trim();
+            if (!message) return;
+
+            try {
+                const commentRef = collection(db, 'artifacts', appId, 'public', 'data', 'comments');
+                await addDoc(commentRef, {
+                    videoId: currentActiveCommentVideoId,
+                    userId: currentUser.uid,
+                    username: userProfile.username,
+                    avatarUrl: userProfile.avatarUrl,
+                    text: message,
+                    createdAt: Date.now()
+                });
+
+                input.value = '';
+                showToast("Comment added!", "success");
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        window.updateMyProfileUI = function() {
+            if (!userProfile) return;
+
+            document.getElementById('my-profile-name').textContent = userProfile.displayName || "BestFriend Creator";
+            document.getElementById('my-profile-handle').textContent = `@${userProfile.username}`;
+            document.getElementById('my-profile-bio').textContent = userProfile.bio || "No bio customized yet.";
+            document.getElementById('my-profile-avatar').src = userProfile.avatarUrl;
+
+            document.getElementById('input-profile-name').value = userProfile.displayName || '';
+            document.getElementById('input-profile-bio').value = userProfile.bio || '';
+
+            document.getElementById('chat-sidebar-name').textContent = `@${userProfile.username}`;
+            document.getElementById('chat-sidebar-avatar').src = userProfile.avatarUrl;
+        };
+
+        function updateStatsAndInteractions() {
+            if (!currentUser) return;
+
+            const userId = currentUser.uid;
+
+            const followersCount = localFollows.filter(f => f.followingId === userId).length;
+            const followingCount = localFollows.filter(f => f.followerId === userId).length;
+            
+            const myVideoIds = localVideos.filter(v => v.userId === userId).map(v => v.id);
+            const myLikesReceived = localLikes.filter(l => myVideoIds.includes(l.videoId)).length;
+
+            document.getElementById('stat-followers').textContent = followersCount;
+            document.getElementById('stat-following').textContent = followingCount;
+
+            document.getElementById('profile-stat-followers').textContent = followersCount;
+            document.getElementById('profile-stat-following').textContent = followingCount;
+            document.getElementById('profile-stat-likes').textContent = myLikesReceived;
+
+            const gridContainer = document.getElementById('my-videos-grid');
+            gridContainer.innerHTML = '';
+
+            const myVideos = localVideos.filter(v => v.userId === userId);
+            if (myVideos.length === 0) {
+                gridContainer.innerHTML = `
+                    <div class="col-span-3 py-10 text-center text-gray-500 text-xs italic">
+                        No videos shared yet! Write a caption and post.
+                    </div>
+                `;
+                return;
+            }
+
+            myVideos.forEach(v => {
+                const block = document.createElement('div');
+                block.className = "relative aspect-[9/16] bg-black rounded-2xl overflow-hidden group cursor-pointer border border-gray-900";
+                block.innerHTML = `
+                    <video src="${v.videoUrl}" muted class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                        <i data-lucide="play" class="w-6 h-6 text-white fill-white"></i>
+                    </div>
+                    <button onclick="deleteMyVideo('${v.id}')" class="absolute top-2.5 right-2.5 bg-black/70 hover:bg-pink-600 text-white p-1.5 rounded-xl border border-gray-850 transition opacity-0 group-hover:opacity-100 z-10">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                `;
+                gridContainer.appendChild(block);
+            });
+            lucide.createIcons();
+        }
+
+        window.deleteMyVideo = async function(videoId) {
+            event.stopPropagation();
+            if (!confirm("Delete this video permanently from the public feed?")) return;
+            try {
+                const videoRef = doc(db, 'artifacts', appId, 'public', 'data', 'videos', videoId);
+                await deleteDoc(videoRef);
+                showToast("Post deleted", "error");
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        document.getElementById('profile-edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const name = document.getElementById('input-profile-name').value.trim();
+            const bio = document.getElementById('input-profile-bio').value.trim();
+            const avatarUrl = `https://placehold.co/150x150/${activeSelectedAvatarColor}/ffffff?text=${userProfile.username.slice(0, 2).toUpperCase()}`;
+
+            try {
+                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', currentUser.uid);
+                
+                userProfile.displayName = name;
+                userProfile.bio = bio;
+                userProfile.avatarUrl = avatarUrl;
+                userProfile.avatarColor = activeSelectedAvatarColor;
+
+                await setDoc(profileRef, userProfile);
+                updateMyProfileUI();
+                closeProfileEditModal();
+                showToast("Profile customized!", "success");
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        window.selectAvatarStyle = function(colorHex) {
+            activeSelectedAvatarColor = colorHex;
+            const options = document.querySelectorAll('.avatar-option');
+            options.forEach(opt => opt.className = "avatar-option border border-gray-850 rounded-xl p-1 bg-gray-900 flex justify-center");
+            event.currentTarget.className = "avatar-option border-2 border-violet-500 rounded-xl p-1 bg-gray-900 flex justify-center";
+        };
+
+        window.setUploadMethod = function(method) {
+            selectedUploadMethod = method;
+            const urlBtn = document.getElementById('btn-method-url');
+            const fileBtn = document.getElementById('btn-method-file');
+            const urlField = document.getElementById('field-video-url');
+            const fileField = document.getElementById('field-video-file');
+
+            if (method === 'url') {
+                urlBtn.className = "bg-violet-600 text-white text-xs font-bold py-2.5 rounded-xl border border-violet-500 transition";
+                fileBtn.className = "bg-gray-900 text-gray-400 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-gray-850 transition";
+                urlField.classList.remove('hidden');
+                fileField.classList.add('hidden');
+            } else {
+                fileBtn.className = "bg-violet-600 text-white text-xs font-bold py-2.5 rounded-xl border border-violet-500 transition";
+                urlBtn.className = "bg-gray-900 text-gray-400 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-gray-850 transition";
+                fileField.classList.remove('hidden');
+                urlField.classList.add('hidden');
+            }
+        };
+
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const title = document.getElementById('input-video-title').value.trim();
+            const musicInput = document.getElementById('input-video-music').value.trim();
+            const music = musicInput || `Original sound - @${userProfile.username}`;
+            let videoUrl = '';
+
+            if (selectedUploadMethod === 'url') {
+                videoUrl = document.getElementById('input-video-url').value.trim();
+                if (!videoUrl) {
+                    showToast("Provide a valid video MP4 link.", "error");
+                    return;
+                }
+            } else {
+                const fileInput = document.getElementById('input-video-file');
+                const file = fileInput.files[0];
+                if (!file) {
+                    showToast("Select a local video file.", "error");
+                    return;
+                }
+                videoUrl = URL.createObjectURL(file);
+            }
+
+            try {
+                const videosRef = collection(db, 'artifacts', appId, 'public', 'data', 'videos');
+                await addDoc(videosRef, {
+                    videoUrl: videoUrl,
+                    title: title,
+                    music: music,
+                    userId: currentUser.uid,
+                    username: userProfile.username,
+                    avatarUrl: userProfile.avatarUrl,
+                    createdAt: Date.now()
+                });
+
+                document.getElementById('input-video-title').value = '';
+                document.getElementById('input-video-music').value = '';
+                document.getElementById('input-video-url').value = '';
+                document.getElementById('input-video-file').value = null;
+
+                closeUploadModal();
+                showToast("New video published!", "success");
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        async function checkPuterStatus() {
+            try {
+                if (typeof puter !== 'undefined') {
+                    const signedIn = puter.auth.isSignedIn();
+                    isPuterLinked = signedIn;
+                    
+                    const badge = document.getElementById('puter-connection-badge');
+                    if (signedIn) {
+                        const user = await puter.auth.getUser();
+                        puterUser = user;
+                        if (badge) {
+                            badge.className = "text-[9px] bg-emerald-950/40 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-900/30 font-bold";
+                            badge.textContent = `Puter: ${user.username}`;
+                        }
+                    } else {
+                        if (badge) {
+                            badge.className = "text-[9px] bg-red-950/40 text-red-400 px-2.5 py-0.5 rounded-full border border-red-900/30 font-bold";
+                            badge.textContent = "Offline";
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn(err);
+            }
+        }
+
+        window.linkPuterAccount = async function() {
+            try {
+                if (typeof puter === 'undefined') {
+                    showToast("Puter library loading...", "error");
+                    return;
+                }
+                showToast("Opening Puter Auth Portal...", "success");
+                const user = await puter.auth.signIn();
+                puterUser = user;
+                isPuterLinked = true;
+                showToast(`Connected as ${user.username}!`, "success");
+                await checkPuterStatus();
+                renderChatLayout();
+            } catch (err) {
+                console.error(err);
+                showToast("Connection canceled", "error");
+            }
+        };
+
+        window.changeChatChannel = function(channel) {
+            activeChatChannel = channel;
+            
+            const btnGlobal = document.getElementById('btn-chat-global');
+            const btnAurora = document.getElementById('btn-chat-aurora');
+
+            btnGlobal.className = "w-full flex items-center justify-between p-3 rounded-2xl transition duration-200 text-left hover:bg-gray-900/40 border border-transparent";
+            btnAurora.className = "w-full flex items-center justify-between p-3 rounded-2xl transition duration-200 text-left hover:bg-gray-900/40 border border-transparent";
+
+            if (channel === 'global') {
+                btnGlobal.className = "w-full flex items-center justify-between p-3 rounded-2xl transition duration-200 bg-violet-600/10 border border-violet-500/20 text-left";
+            } else {
+                btnAurora.className = "w-full flex items-center justify-between p-3 rounded-2xl transition duration-200 bg-pink-600/10 border border-pink-500/20 text-left";
+            }
+
+            renderChatLayout();
+        };
+
+        function renderChatLayout() {
+            const headerTitle = document.getElementById('active-chat-title');
+            const headerSubtitle = document.getElementById('active-chat-subtitle');
+            const headerIcon = document.getElementById('active-chat-icon');
+            const iconContainer = document.getElementById('active-chat-icon-container');
+            const puterPrompt = document.getElementById('puter-auth-prompt-overlay');
+            const suggestionsBar = document.getElementById('aurora-suggestions-bar');
+
+            puterPrompt.classList.add('hidden');
+            suggestionsBar.classList.add('hidden');
+
+            if (activeChatChannel === 'global') {
+                headerTitle.textContent = "Global Club Lounge";
+                headerSubtitle.textContent = "Real-time chat with active creators";
+                headerIcon.setAttribute('data-lucide', 'users');
+                iconContainer.className = "w-8 h-8 rounded-lg bg-violet-600/20 flex items-center justify-center text-violet-400";
+            } else {
+                headerTitle.textContent = "Aurora AI Companion";
+                headerSubtitle.textContent = "Interactive serverless assistant powered by Puter.js";
+                headerIcon.setAttribute('data-lucide', 'sparkles');
+                iconContainer.className = "w-8 h-8 rounded-lg bg-pink-600/20 flex items-center justify-center text-pink-400";
+
+                suggestionsBar.classList.remove('hidden');
+
+                if (!isPuterLinked) {
+                    puterPrompt.classList.remove('hidden');
+                }
+            }
+
+            lucide.createIcons();
+            renderChatMessages();
+        }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages-container');
+            container.innerHTML = '';
+
+            const messagesToDisplay = activeChatChannel === 'global' ? localChatMessages : auroraChatHistory;
+
+            if (messagesToDisplay.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-center py-20">
+                        <i data-lucide="message-square" class="w-10 h-10 text-gray-800 mb-3"></i>
+                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide">Lounge stream started</h4>
+                        <p class="text-[10px] text-gray-600 mt-1">Be the first to say hello to everyone!</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            messagesToDisplay.forEach(m => {
+                const isMyMessage = m.userId === currentUser?.uid || m.sender === 'user';
+                const isAurora = m.sender === 'aurora';
+                
+                const card = document.createElement('div');
+                card.className = `flex gap-3 max-w-[85%] ${isMyMessage ? 'ml-auto flex-row-reverse' : 'mr-auto'}`;
+                
+                // Add specific glowing border styles if Aurora is transmitting
+                const bubbleStyle = isMyMessage 
+                    ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white rounded-tr-none shadow-md' 
+                    : isAurora
+                        ? 'bg-[#0a0f1d] text-gray-100 border border-pink-500/30 rounded-tl-none shadow-md shadow-pink-500/5'
+                        : 'bg-[#0e1424] text-gray-200 border border-gray-850 rounded-tl-none shadow-sm';
+
+                const avatarStyle = isAurora ? 'w-8 h-8 rounded-full object-cover shrink-0 glow-avatar-ai border-2 border-pink-500/50' : 'w-8 h-8 rounded-full border border-gray-800 object-cover shrink-0';
+
+                card.innerHTML = `
+                    <img src="${m.avatarUrl || 'https://placehold.co/80x80/8b5cf6/ffffff?text=C'}" class="${avatarStyle}" onerror="this.src='https://placehold.co/80x80/8b5cf6/ffffff?text=C'">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1 ${isMyMessage ? 'justify-end' : ''}">
+                            <span class="text-[10px] font-bold text-gray-400">@${m.username || 'user'}</span>
+                            <span class="text-[8px] text-gray-600">${new Date(m.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <div class="p-3.5 rounded-2xl text-xs leading-relaxed ${bubbleStyle}">
+                            ${m.text}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            scrollChatToBottom();
+        }
+
+        function scrollChatToBottom() {
+            const container = document.getElementById('chat-messages-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        window.handleChatSubmit = function() {
+            if (activeChatChannel === 'global') {
+                sendGlobalChatMessage();
+            } else {
+                sendAuroraMessage();
+            }
+        };
+
+        window.sendQuickAuroraPrompt = function(promptText) {
+            const input = document.getElementById('chat-message-input');
+            input.value = promptText;
+            sendAuroraMessage();
+        };
+
+        async function sendGlobalChatMessage() {
+            const input = document.getElementById('chat-message-input');
+            const text = input.value.trim();
+            if (!text || !currentUser) return;
+
+            try {
+                const chatRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_chat');
+                await addDoc(chatRef, {
+                    userId: currentUser.uid,
+                    username: userProfile.username,
+                    avatarUrl: userProfile.avatarUrl,
+                    text: text,
+                    createdAt: Date.now()
+                });
+                input.value = '';
+                scrollChatToBottom();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function sendAuroraMessage() {
+            const input = document.getElementById('chat-message-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const userMsg = {
+                sender: 'user',
+                username: userProfile.username,
+                avatarUrl: userProfile.avatarUrl,
+                text: text,
+                createdAt: Date.now()
+            };
+            auroraChatHistory.push(userMsg);
+            renderChatMessages();
+            input.value = '';
+            scrollChatToBottom();
+
+            showAuroraTyping(true);
+
+            try {
+                const formattedHistory = auroraChatHistory.slice(-8).map(m => ({
+                    role: m.sender === 'user' ? 'user' : 'assistant',
+                    content: m.text
+                }));
+
+                const response = await puter.ai.chat([
+                    {
+                        role: 'system',
+                        content: "You are Aurora, a highly playful, extremely creative, and tech-savvy AI companion on the BestFriend Platform. BestFriend is a TikTok-like place where people share cool video loops, follow each other, and chat. Keep responses short (under 3 paragraphs), visually structured, full of pink emojis (💖, ✨, 🎬, 👾, 🌈, 🚀), and very inspiring! Promote sharing and platform engagement!"
+                    },
+                    ...formattedHistory
+                ], { model: 'google/gemini-3.1-flash-lite' });
+
+                let aiResponseText = "";
+                if (typeof response === 'string') {
+                    aiResponseText = response;
+                } else if (response && response.message && typeof response.message.content === 'string') {
+                    aiResponseText = response.message.content;
+                } else if (response && response.message && typeof response.message === 'string') {
+                    aiResponseText = response.message;
+                } else if (response && typeof response.text === 'string') {
+                    aiResponseText = response.text;
+                } else if (response && response.message?.content?.parts?.[0]?.text) {
+                    aiResponseText = response.message.content.parts[0].text;
+                } else {
+                    aiResponseText = "Yay! I am here and loving the vibe on BestFriend! ❤️ Post a video so we can watch together!";
+                }
+
+                const auroraResponse = {
+                    sender: 'aurora',
+                    username: 'Aurora AI',
+                    avatarUrl: 'https://placehold.co/80x80/ec4899/ffffff?text=AI',
+                    text: aiResponseText,
+                    createdAt: Date.now()
+                };
+                auroraChatHistory.push(auroraResponse);
+                renderChatMessages();
+
+            } catch (err) {
+                console.error(err);
+                const errorResponse = {
+                    sender: 'aurora',
+                    username: 'Aurora AI',
+                    avatarUrl: 'https://placehold.co/80x80/ec4899/ffffff?text=AI',
+                    text: "Ah, my synapses got mixed in the cloud stream! 🌀 Try saying that again, my friend!",
+                    createdAt: Date.now()
+                };
+                auroraChatHistory.push(errorResponse);
+                renderChatMessages();
+            } finally {
+                showAuroraTyping(false);
+                scrollChatToBottom();
+            }
+        }
+
+        function showAuroraTyping(visible) {
+            const indicator = document.getElementById('aurora-typing-indicator');
+            if (visible) {
+                indicator.classList.remove('hidden');
+            } else {
+                indicator.classList.add('hidden');
+            }
+        }
+
+        window.openUploadModal = function() {
+            document.getElementById('upload-modal').classList.remove('hidden');
+        };
+
+        window.closeUploadModal = function() {
+            document.getElementById('upload-modal').classList.add('hidden');
+        };
+
+        window.openProfileEditModal = function() {
+            document.getElementById('profile-edit-modal').classList.remove('hidden');
+        };
+
+        window.closeProfileEditModal = function() {
+            document.getElementById('profile-edit-modal').classList.add('hidden');
+        };
+
+        window.onload = function() {
+            runAuthentication();
+            lucide.createIcons();
+        };
+
+    </script>
+</body>
+</html>
